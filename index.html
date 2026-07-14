@@ -92,6 +92,22 @@
   .empty{text-align:center; color:var(--sub); font-size:14px; padding:20px}
   .allworks{margin-top:34px}
   .allworks h2{font-size:15px; margin:0 0 10px; color:var(--ink)}
+  .allcases{margin-top:34px}
+  .allcases h2{font-size:15px; margin:0 0 6px; color:var(--ink)}
+  .cfilter{width:100%; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+    font-size:14px; background:var(--soft); font-family:inherit; margin:8px 0 10px}
+  .cfilter:focus{outline:none; border-color:var(--accent)}
+  .chip.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .caselist{max-height:420px; overflow-y:auto; border:1px solid var(--line);
+    border-radius:14px; background:var(--card); margin-top:10px; box-shadow:var(--shadow)}
+  .caserow{display:flex; justify-content:space-between; align-items:center; gap:10px;
+    width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line);
+    padding:11px 13px; cursor:pointer; font-family:inherit; font-size:13.5px; color:var(--ink); line-height:1.5}
+  .caserow:last-child{border-bottom:none}
+  .caserow:hover{background:var(--soft)}
+  .cnayami{flex:1}
+  .cwork{flex-shrink:0; font-size:10.5px; color:var(--accent-d); background:var(--soft);
+    border:1px solid var(--line); border-radius:999px; padding:2px 9px; white-space:nowrap}
   footer{text-align:center; color:var(--sub); font-size:11px; margin-top:36px; line-height:1.6}
 </style>
 </head>
@@ -100,7 +116,7 @@
   <header>
     <div class="logo">🕊️</div>
     <h1>お悩みワーク・ナビ</h1>
-    <p class="lead">いまの気持ちや状況を、そのまま書いてみてね。正しい言葉じゃなくて大丈夫。<br>合いそうなワークを、そっとご提案します。</p>
+    <p class="lead">いまの気持ちや状況を、そのまま書いてみてね。<br>正しい言葉じゃなくて大丈夫。<br>合いそうなワークを、そっとご提案します。</p>
   </header>
 
   <div class="searchbox">
@@ -118,6 +134,14 @@
     <div class="chips" id="allchips"></div>
   </div>
 
+  <div class="allcases">
+    <h2>お悩み一覧から選ぶ（<span id="caseCount"></span>件）</h2>
+    <div class="hint">気になるお悩みをタップすると、合いそうなワークをおすすめ順に出すよ。</div>
+    <input id="caseFilter" class="cfilter" placeholder="キーワードでしぼる（例：仕事、緊張、親）">
+    <div class="chips" id="typeChips"></div>
+    <div class="caselist" id="caselist"></div>
+  </div>
+
   <footer id="foot"></footer>
 </div>
 
@@ -128,6 +152,25 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
 (function(){
   const works = DATA.works, cases = DATA.cases;
   const wmap = {}; works.forEach(w=>wmap[w.name]=w);
+
+  // 言葉のゆらぎを吸収する、ワーク別の手がかりキーワード（一致すると加点）
+  const KW = {
+    "フォビアモデル":["怖","こわ","恐怖","恐い","パニック","高所","閉所","虫","苦手なもの","恐怖症","トラウマ"],
+    "ポジションチェンジ":["人間関係","相手","苦手な人","対立","けんか","喧嘩","夫","妻","上司","同僚","部下","親","関係","我慢","職場の人","義母","義父","友達"],
+    "サブモダリティ／オーディトリースイッシュ":["言われた","声","批判","けなさ","否定的な言葉","嫌な言葉","思い出す","フラッシュ","責められ"],
+    "サブモダリティ／好きから好きではない":["お菓子","甘いもの","間食","ジャンク","食べすぎ","好きだけど","やめたい味","甘い物"],
+    "悪習慣の改善":["習慣","やめられない","つい","だらだら","スマホ","ゲーム","夜更かし","先延ばし","二度寝","酒","たばこ","タバコ","飲みすぎ"],
+    "肯定的意図":["やめられない","依存","癖","わかってるのに"],
+    "パーツインテグレーション":["葛藤","やりたいのに","わかっているのに","相反","二つの気持ち","踏み出せない","迷い","もう一人の自分"],
+    "アウトカムフレーム":["目標","ゴール","やりたいこと","夢","叶えたい","方向性","何がしたい"],
+    "チェインプロセス":["達成","実現","叶える","前に進み","ステップ"],
+    "モデリング":["なりたい","憧れ","真似","見習","できる人","ロールモデル","成功者","あの人みたい"],
+    "サークル・オブ・エクセレンス":["緊張","本番","プレゼン","面接","ここぞ","実力","あがり症","発表","試験","舞台"],
+    "アンカリング":["落ち着き","集中","やる気","スイッチ","気持ちの切り替え","状態を作"],
+    "ニューロ・ロジカル・レベル":["自分軸","ぶれ","在り方","アイデンティティ","使命","自己一致","生き方"],
+    "ストラテジー":["効率","段取り","手順","やり方","うまくいかない","要領"],
+    "Generative NLP Format":["未来","これから","人生","過去を","意味づけ","生き直"]
+  };
 
   // ---- テキスト正規化・バイグラム ----
   function norm(s){
@@ -151,6 +194,7 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
   // 各ケース・各ワークのグラムを前計算
   cases.forEach(c=>{ c._g = grams(c.nayami+" "+c.purpose+" "+c.type); });
   works.forEach(w=>{ w._g = grams(w.solve+" "+w.scene+" "+w.name); });
+  works.forEach(w=>{ w._cases = cases.filter(c=>c.work===w.name); });
 
   const catClass = {"コーチング":"b-coach","カウンセリング":"b-counsel","セラピー":"b-therapy","ティーチング":"b-teach"};
   function badgesHTML(w){
@@ -184,22 +228,46 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
       if(!agg[w.name]) agg[w.name]={work:w.name,best:0,ex:[]};
       if(s>agg[w.name].best) agg[w.name].best=Math.max(agg[w.name].best,s);
     });
+    // 手がかりキーワードで加点（言葉のゆらぎ・意味のズレを補正）
+    const nq = norm(q);
+    works.forEach(w=>{
+      const kws = KW[w.name]||[];
+      let hits=0; kws.forEach(k=>{ if(nq.indexOf(norm(k))>=0) hits++; });
+      if(hits>0){
+        if(!agg[w.name]) agg[w.name]={work:w.name,best:0,ex:[]};
+        agg[w.name].best += Math.min(hits,2)*0.22;
+      }
+    });
     const arr = Object.values(agg).filter(a=>wmap[a.work]);
     arr.sort((a,b)=>b.best-a.best);
     return arr;
   }
 
-  function render(q){
+  function render(q, pinWork){
     const res = document.getElementById("results");
     q=(q||"").trim();
-    if(!q){ res.innerHTML=""; return; }
-    const ranked = search(q).filter(r=>r.best>0.05).slice(0,3);
-    if(ranked.length===0){
-      res.innerHTML='<div class="empty">今回は、ぴったり重なるものが見つからなかったみたい。あなたの書き方のせいじゃないよ。<br>気持ち・場面・体の感じなど、別の言葉でもう一度そっと書いてみてね。</div>';
+    if(!q){
+      res.innerHTML='<div class="empty">まずは、いまの気持ちや状況を上の欄に書いてみてね。<br>思いつかないときは、下の言葉をタップしてもOKだよ。</div>';
+      res.scrollIntoView({behavior:"smooth",block:"center"});
+      document.getElementById("q").focus();
       return;
     }
-    const strong = ranked[0].best>=0.18;
-    let html='<p class="resulthead">'+(strong?"この状況に、こんなワークが合いそうだよ":"近いものをさがしてみたよ。しっくりくるものを選んでみてね")+'</p>';
+    const qg = grams(q);
+    let ranked = search(q).filter(r=>r.best>0.05).slice(0,4);
+    if(pinWork && wmap[pinWork]){
+      ranked = ranked.filter(r=>r.work!==pinWork);
+      const exs = (wmap[pinWork]._cases||[]).map(c=>({t:c.nayami, s:dice(qg,c._g)}))
+                    .sort((a,b)=>b.s-a.s).slice(0,3);
+      ranked.unshift({work:pinWork, best:1, ex:exs});
+    }
+    ranked = ranked.slice(0,3);
+    if(ranked.length===0){
+      res.innerHTML='<div class="empty">今回は、ぴったり重なるものが見つからなかったみたい。あなたの書き方のせいじゃないよ。<br>気持ち・場面・体の感じなど、別の言葉でもう一度そっと書いてみてね。</div>';
+      res.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+    const strong = !!pinWork || ranked[0].best>=0.18;
+    let html='<p class="resulthead">'+(pinWork?("「"+esc(q)+"」に、こんなワークが合いそうだよ"):(strong?"この状況に、こんなワークが合いそうだよ":"近いものをさがしてみたよ。しっくりくるものを選んでみてね"))+'</p>';
     ranked.forEach((r,i)=>{
       const w=wmap[r.work];
       html+='<div class="card'+(i===0?" top":"")+'">';
@@ -249,6 +317,39 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
   document.getElementById("q").addEventListener("keydown",e=>{
     if((e.ctrlKey||e.metaKey)&&e.key==="Enter") render(document.getElementById("q").value);
   });
+
+  // お悩み一覧（種別フィルター＋キーワード絞り込み）
+  const typeSet=[...new Set(cases.map(c=>c.type||"その他"))];
+  let curType="__all";
+  const caselist=document.getElementById("caselist");
+  const cfilter=document.getElementById("caseFilter");
+  const typeChips=document.getElementById("typeChips");
+  function tchip(label,active,fn){ const s=document.createElement("span"); s.className="chip"+(active?" on":""); s.textContent=label; s.onclick=fn; return s; }
+  function renderTypeChips(){
+    typeChips.innerHTML="";
+    typeChips.appendChild(tchip("すべて",curType==="__all",()=>{curType="__all";renderTypeChips();renderCaseList();}));
+    typeSet.forEach(t=>typeChips.appendChild(tchip(t,curType===t,()=>{curType=t;renderTypeChips();renderCaseList();})));
+  }
+  function renderCaseList(){
+    const kw=norm(cfilter.value);
+    const filtered=cases.filter(c=>{
+      if(curType!=="__all" && (c.type||"その他")!==curType) return false;
+      if(kw && norm(c.nayami+c.purpose+c.type).indexOf(kw)<0) return false;
+      return true;
+    });
+    document.getElementById("caseCount").textContent=filtered.length;
+    let h="";
+    filtered.forEach(c=>{
+      const gi=cases.indexOf(c);
+      h+='<button class="caserow" data-i="'+gi+'"><span class="cnayami">'+esc(c.nayami)+'</span><span class="cwork">'+esc(c.work)+'</span></button>';
+    });
+    caselist.innerHTML=h || '<div class="empty">その条件のお悩みは見つからなかったみたい。別の言葉でしぼってみてね。</div>';
+    [...caselist.querySelectorAll(".caserow")].forEach(b=>{
+      b.onclick=()=>{ const c=cases[+b.dataset.i]; document.getElementById("q").value=c.nayami; render(c.nayami, c.work); };
+    });
+  }
+  cfilter.addEventListener("input",renderCaseList);
+  renderTypeChips(); renderCaseList();
 
   document.getElementById("foot").innerHTML =
     "収録：NLPコーチングワーク "+works.length+"種 ／ 悩みケース "+cases.length+"件<br>"+
