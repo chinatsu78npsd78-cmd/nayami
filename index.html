@@ -116,11 +116,11 @@
   <header>
     <div class="logo">🕊️</div>
     <h1>お悩みワーク・ナビ</h1>
-    <p class="lead">いまの気持ちや状況を、そのまま書いてみてね。<br>正しい言葉じゃなくて大丈夫。<br>合いそうなワークを、そっとご提案します。</p>
+    <p class="lead">いまの気持ちや状況を<br>そのまま書いてみてね。<br><br>正しい言葉じゃなくて大丈夫。<br>合いそうなワークを、そっとご提案します</p>
   </header>
 
   <div class="searchbox">
-    <p class="reassure">書いたことは、この画面の中だけ。どこにも送られないよ。</p>
+    <p class="reassure">書いたことは、この画面の中だけ。<br>どこにも送られないよ。</p>
     <textarea id="q" placeholder="例）人前で話すとき緊張して頭が真っ白になる"></textarea>
     <button class="btn" id="go">ワークを探す</button>
     <div class="hint">こんな言葉でもOK：</div>
@@ -352,8 +352,10 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
   renderTypeChips(); renderCaseList();
 
   document.getElementById("foot").innerHTML =
-    "収録：NLPコーチングワーク "+works.length+"種 ／ 悩みケース "+cases.length+"件<br>"+
-    "このナビは、あなたに合いそうなワークを一緒にさがす“目安”だよ。<br>"+
+    "NLPコーチングワーク "+works.length+"種<br>"+
+    "悩みケース "+cases.length+"件<br>"+
+    "このナビは、あなたに合いそうな<br>"+
+    "ワークを一緒にさがす“目安”です<br>"+
     "もし今、気持ちがとてもつらいときは、無理をせず、信頼できる人や専門家にも頼ってね。";
 })();
 </script>
