@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>お悩みワーク・ナビ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f7f2ea">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ワークナビ">
 <style>
   :root{
     --bg:#f7f2ea; --card:#fffdf9; --ink:#4a4038; --sub:#8a7d70;
@@ -356,6 +363,11 @@ const DATA = {"works": [{"name": "サブモダリティ／好きから好きで�
     "悩みケース "+cases.length+"件<br>"+
     "このナビは、あなたに合いそうな<br>"+
     "ワークを一緒にさがす“目安”です";
+
+  // ホーム画面アプリ用（対応ページでのみ有効。失敗しても何もしない）
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
+  }
 })();
 </script>
 </body>
